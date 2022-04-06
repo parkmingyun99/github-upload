@@ -1,0 +1,64 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+#define MAX 10000
+
+int main(int argv, char *argc[])
+{
+    char *fname = argc[1];  // in.txt
+    char *result = argc[2]; // out.txt
+    int in_fd, out_fd;
+    char ch[MAX]={0,};
+
+    int dl=-1;
+
+    if ((in_fd = open(fname, O_RDONLY)) < 0){
+        fprintf(stderr, "open error for %s\n", fname); // in.txt 존재하지 않거나, 권한을 못가져올 시  -> 시스템콜
+        exit(1);                                       // 종료 시스템콜
+    }
+    ONE:
+    if ((out_fd = open(result, O_RDONLY)) > 0){ // out.txt가 있다면, 시스템콜
+        // console에 out.txt파일이 이미 있음을 알린 후 프로그램 종료를 진행한다.
+        fprintf(stderr, "\n\n%s file is already exist\n\n", result);
+        fprintf(stderr, "ENTER NUMBER\nexit program : 0 \ndelete out.txt and new create out.txt : 1\n\n\n");
+        scanf("%d",&dl);
+        if(dl==0){
+           
+        }
+        else if(dl==1){
+            remove(result);
+            goto TWO;
+        }
+        else{
+            fprintf(stderr, "Error! Input Wrong Nuber. you should input 0 or 1.");
+            goto ONE;
+        }
+        exit(1);
+    }
+    TWO:
+    // 기존파일 삭제 후 재생성했을 경우 여기로 옴.
+    // in.txt 읽기
+    // out.txt 에 쓰기
+    // 하드웨어적 오류 발생가능성 고려, 쓰기 연산도중 디스크공간 부족등의 에러 고려
+
+    // 두 파일을 닫기 (시스템콜)
+    // 콘솔에 결과 출력 (시스템콜)
+    // 정상종료 (시스템콜)
+    in_fd = open(fname, O_RDONLY);
+    out_fd = open(result, O_EXCL | O_WRONLY | O_CREAT, 0644);
+
+    while (read(in_fd, ch, sizeof(ch))){
+        write(out_fd, ch, sizeof(ch));
+    }
+
+    close(in_fd); // in.txt file close system call
+    close(out_fd);  // out.txt file close system call
+
+    fprintf(stderr, "Success copy %s -> %s !! \n", fname, result); // console에 결과출력 system call
+    exit(0); // exit system call
+
+}
